@@ -1,0 +1,35 @@
+---
+import '../styles/global.css';
+
+const { title } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+</head>
+<body>
+  <header>
+    <img src={`${base}images/avatar.jpeg`} alt="博客顶部插图">
+    <h1>希干希纳的飞鸽</h1>
+    <p>记录每一天</p>
+  </header>
+
+  <nav>
+    <a href={base}>首页</a>
+    <a href={`${base}about`}>关于</a>
+  </nav>
+
+  <main>
+    <slot />
+  </main>
+
+  <footer>
+    <p>© 2026 ShigaDove</p>
+  </footer>
+</body>
+</html>

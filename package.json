@@ -1,0 +1,17 @@
+{
+  "name": "my-blog",
+  "version": "1.0.0",
+  "description": "希干希纳的飞鸽的博客",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "author": "ShigaDove",
+  "license": "ISC",
+  "dependencies": {
+    "astro": "^7.4.13"
+  }
+}

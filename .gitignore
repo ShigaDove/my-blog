@@ -7,3 +7,8 @@ Thumbs.db
 
 # 日志
 *.log
+
+# Node / Astro
+node_modules/
+dist/
+.astro/

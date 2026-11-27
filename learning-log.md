@@ -471,6 +471,230 @@ GitHub Pages 前面有 **CDN 缓存**，改完可能要等几分钟。也有浏�
 
 ---
 
+## 阶段 4 · Markdown 与内容建模 — ✅ 完成（2026-11-27）
+
+**产出**：`content/posts/` 下 3 篇 Markdown + 3 个手工转成的 HTML 页面（`posts/*.html`）
+
+### 4.1 为什么需要这一阶段
+
+手写 HTML 时，同一份数据存在多处：
+
+| 数据 | 存在于 | 数量 |
+|---|---|---|
+| 标题 | index 的 h2、文章页 title、文章页 h1、md 的 title | 4 |
+| 日期 | index 的 time、文章页 time、md 的 date | 3 |
+| 摘要 | index 的 p、md 的 summary | 2 |
+
+改一个标题要动 4 处，而且错了不会报错。这就是要引入"内容源文件"的原因。
+
+### 4.2 Markdown 速查
+
+| 想要 | 写 |
+|---|---|
+| 标题 | `# 一级` `## 二级` `### 三级` |
+| 粗体 / 斜体 | `**粗**` `*斜*` |
+| 行内代码 | 反引号包起来 |
+| 代码块 | 三个反引号包起来 |
+| 链接 | `[文字](url)` |
+| 图片 | `![描述](路径)` |
+| 列表 | `- 项目` / `1. 项目` |
+| 引用 | `> 引文` |
+
+### 4.3 frontmatter：文章的"字段"
+
+两条 `---` 之间是 YAML，**不显示给读者，是给程序读的**。
+
+和 `<time datetime="...">2026 年 11 月 25 日</time>` 是同一个思路：**人看的 / 机器读的，分开存**。
+
+### 4.4 文件名就是网址（slug）
+
+```
+content/posts/why-i-start-a-blog.md   →   /posts/why-i-start-a-blog
+```
+
+规则：**全小写、英文、数字、连字符**。中文会被编码成 `%E4%B8%BA...`，又丑又容易断。
+
+### 4.5 Markdown → HTML 对照表
+
+| Markdown | HTML |
+|---|---|
+| `## 标题` | `<h2>标题</h2>`（`##` 要删掉） |
+| 段落 | `<p>…</p>`（空行 = 段落边界） |
+| `- 项` | 整个列表包一次 `<ul>`，每项 `<li>` |
+| `1. 项` | `<ol><li>` |
+| `> 引用` | `<blockquote><p>…</p></blockquote>` |
+| 代码块 | `<pre><code>…</code></pre>`，内容顶格 |
+| 行内代码 | `<code>代码</code>` |
+| `**粗**` | `<strong>粗</strong>` |
+| `[字](url)` | `<a href="url">字</a>` |
+| 表格 | `<table><thead><tr><th>` / `<tbody><tr><td>` |
+
+### 4.6 转义
+
+| 想显示 | 写成 |
+|---|---|
+| `<` | `&lt;` |
+| `>` | `&gt;` |
+| `&` | `&amp;` |
+
+代码块里只要出现 HTML 标签，就必须全部转义，否则页面上会"少一截"（浏览器当成标签解析了）。
+
+### 4.7 踩过的坑
+
+**① 标记要"删掉"，不是"包起来"**
+
+```html
+❌ <p>```html</p>     ← 页面上会显示 ```html
+❌ <p>html</p>        ← 只删反引号，会剩个 html
+✅ 整行删除
+```
+
+**② `&lt` 少了分号**
+
+HTML 实体必须以 `;` 结尾。`&lt;!DOCTYPE html&gt;` 写成 `&lt!DOCTYPE html&gt` 会显示错乱。
+
+**③ 中文和 ASCII 混排永远对不齐**
+
+中文是全角（两个英文字符宽），框线字符 `┌─│` 只占一个。所以 **ASCII 图里不能放中文**——把中文标注移到图外的列表里。
+
+**④ 比例字体 vs 等宽字体**
+
+`pre` 继承了 "Segoe UI"（比例字体），i 窄 m 宽，列全歪。代码块必须 `font-family: Consolas, monospace`。
+
+### 4.8 两套目录要分清
+
+| 目录 | 装什么 | 给谁 |
+|---|---|---|
+| `content\posts\` | .md 源文件 | 给人写、给程序读 |
+| `posts\` | .html 产物 | 给浏览器读 |
+
+阶段 5 之后这个关系变成流水线：`content\posts\*.md` → 构建 → `dist\*.html`。
+
+### 4.9 本阶段还没搞懂的
+
+- （待补）
+
+---
+
+## 阶段 5 · Astro — ⬜ 进行中（2026-11-27）
+
+### 5.1 Astro 是什么
+
+**就是"编译器"**：你写组件 + Markdown，它构建出 HTML。
+
+```
+content/posts/*.md + src/pages/*.astro  →  npm run build  →  dist/*.html
+        （源码）                            （编译）          （产物）
+```
+
+### 5.2 项目结构
+
+```
+my-blog\
+├── package.json        依赖清单 + 脚本（dev/build/preview）
+├── package-lock.json   锁定精确版本
+├── node_modules\       依赖的实际代码（140MB，不进 git）
+├── astro.config.mjs    配置文件
+├── src\
+│   ├── pages\          每个文件 = 一个页面
+│   ├── layouts\        布局组件
+│   ├── styles\         global.css（import 进来）
+│   └── content.config.ts  内容集合的 schema
+├── public\             原样复制的静态资源（images）
+└── content\posts\      Markdown 源文件
+```
+
+**Astro 只认 `src/` 和 `public/`**，根目录那些手写的 `index.html`、`posts\*.html` 不再参与构建。
+
+### 5.3 依赖
+
+- `package.json` 只记一行 `"astro": "^7.4.13"`
+- 实际代码在 `node_modules\`（140MB），**必须写进 `.gitignore`**
+- 别人拿到仓库跑一次 `npm install` 就能装回来
+
+### 5.4 文件路由
+
+| 文件 | 网址 |
+|---|---|
+| `src\pages\index.astro` | `/` |
+| `src\pages\about.astro` | `/about` |
+| `src\pages\posts\[id].astro` | 每个 id 一个页面 |
+
+**不用配置任何路由**，建文件就有页面。
+
+### 5.5 `.astro` 的三段结构
+
+- `---` 之间：前置脚本（构建时执行）
+- 下面是模板（普通 HTML）
+- 花括号 `{}` 里插值
+
+### 5.6 dev 和 build 是两回事（我说错过一次）
+
+| | `npm run dev` | `npm run build` |
+|---|---|---|
+| 渲染时机 | **每次请求**都重跑 frontmatter | **构建时一次**，写进文件 |
+| 产物 | 内存里，没有文件 | `dist\*.html` |
+| 类比 | 解释执行 | 编译成 .exe |
+
+**踩过的误解**：我以为 `new Date()` 在 dev 里也是构建时求值，结果按 F5 时间就变。**dev 模式故意牺牲了"静态"换开发速度。** 只有 build 出来的 `dist\index.html` 里时间才是写死的。
+
+> 教训：**"我讲的"是二手信息，"你测出来的"才是一手。**
+
+### 5.7 组件 = 函数
+
+| 函数 | 组件 |
+|---|---|
+| `int add(int a, int b)` | `<Layout title="首页">…</Layout>` |
+| 参数 | **props**（`Astro.props`） |
+| return | `<slot />` 的位置 |
+| 调用 | `<Layout title="首页">` |
+
+- `const { title } = Astro.props;` = 解构参数
+- `<slot />` = 父组件写在标签之间的内容塞到这里
+- 改 Layout 一处，所有用到它的页面全变（阶段 4 要改 4 处）
+
+### 5.8 public 和 src 的区别
+
+| 放哪 | 引用方式 | 部署到子路径 /my-blog/ 时 |
+|---|---|---|
+| `public\` | `/images/x.jpg` | 会复制到站点根，可用 |
+| `src\styles\` | `import '../styles/global.css'` | Astro 打包并自动修正路径 |
+
+**`<link href="/style.css">` 是危险的**：`/` 指域名根目录，而站点在 `/my-blog/` 下会 404。**CSS 用 import，不要用 link。**
+
+### 5.9 内容集合（Content Collections）
+
+```ts
+// src/content.config.ts
+const posts = defineCollection({
+  loader: glob({ pattern: '*.md', base: './content/posts' }),
+  schema: z.object({
+    title: z.string(),
+    date: z.coerce.date(),
+    tags: z.array(z.string()).default([]),
+    draft: z.boolean().default(false),
+  }),
+});
+```
+
+- **loader**：去哪里读文件
+- **schema**：每个字段必须是什么类型（像 C 的 struct 定义）；写错类型**构建直接报错**
+- `getCollection('posts')`：取出所有文章（frontmatter 已被解析成对象）
+- `[id].astro` + `getStaticPaths()`：**一个模板 × N 条数据 = N 个页面**
+
+```
+3 个 .md  →  getCollection()  →  3 条数据
+          →  getStaticPaths() 返回 3 个 id
+          →  为每个 id 渲染一次 [id].astro
+          →  dist/posts/<id>/index.html × 3
+```
+
+### 5.10 本阶段还没搞懂的
+
+- （待补）
+
+---
+
 <!-- 新阶段模板，复制这一小段往下加
 
 ## 阶段 N · 标题 — ⬜ 进行中

@@ -1,0 +1,9 @@
+# 系统垃圾文件
+Thumbs.db
+.DS_Store
+
+# 编辑器配置
+.vscode/
+
+# 日志
+*.log

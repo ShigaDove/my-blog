@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的第一个网页，和那个让我愣住的 F12 面板</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <header>
+        <h1>我的第一个网页，和那个让我愣住的 F12 面板</h1>
+        <time datetime="2026-11-26">2026 年 11 月 26 日</time>
+    </header>
+
+    <main>
+        <article>
+            <p>写第一个网页那天，我在 <code>index.html</code> 里敲了九行：</p>
+
+            <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;我的博客&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;你好，世界&lt;/h1&gt;
+  &lt;p&gt;这是我的第一个网页。&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+            <p>双击打开，一行巨大的黑字，没有边距，没有留白，白底黑字占满整个屏幕。</p>
+
+            <p>丑归丑，但它真的跑起来了。然后我按了 F12。</p>
+
+            <h2>骨架里每一行都在干一件具体的事</h2>
+
+            <p>我一开始以为 <code>&lt;!DOCTYPE html&gt;</code> 和 <code>lang="zh-CN"</code> 是形式主义，其实每一行都有用处：</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>那一行</th>
+                        <th>干什么</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>&lt;!DOCTYPE html&gt;</code></td>
+                        <td>让浏览器用<strong>标准模式</strong>解析。不写会走模仿老 IE 的“怪异模式”，布局会莫名其妙错位</td>
+                    </tr>
+                    <tr>
+                        <td><code>lang="zh-CN"</code></td>
+                        <td>声明这是中文。读屏软件用中文发音，浏览器会问你“要不要翻译”</td>
+                    </tr>
+                    <tr>
+                        <td><code>&lt;meta charset="UTF-8"&gt;</code></td>
+                        <td><strong>编码</strong>。不写或者写错，中文全变乱码</td>
+                    </tr>
+                    <tr>
+                        <td><code>&lt;meta name="viewport"&gt;</code></td>
+                        <td>手机端的宽度策略。做响应式时它是前提</td>
+                    </tr>
+                    <tr>
+                        <td><code>&lt;title&gt;</code></td>
+                        <td>标签页上的文字，也是搜索结果的第一行</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p><code>charset</code> 那行我后来真栽过：文件存成了别的编码，浏览器照着 UTF-8 解码，整页变成 <code>æˆ‘çš„åšå®¢</code> 这种鬼画符。<strong>乱码永远是“文件编码”和“声明编码”对不上</strong>，不是玄学。</p>
+
+            <p><code>head</code> 和 <code>body</code> 的分工也随之清楚了：<code>head</code> 装的是“关于这个页面的信息”，不显示；<code>body</code> 才是用户看得见的东西。</p>
+
+            <h2>元素、属性，其实就是一个 struct</h2>
+
+            <pre><code>&lt;a href="posts/hello.html"&gt;阅读全文&lt;/a&gt;</code></pre>
+
+            <p>拆开看：<code>&lt;a</code> 是开始标签，<code>&lt;/a&gt;</code> 是结束标签，中间是内容，三者合起来叫一个<strong>元素</strong>。<code>href="..."</code> 是<strong>属性</strong>，键值对，只能写在开始标签里。</p>
+
+            <p>用 C 的话说：<strong>一个元素 ≈ 一个 struct，属性 ≈ 它的字段。</strong>只不过它的字段全是字符串，而且大部分可以省略。</p>
+
+            <p>这个类比一路通用。<code>&lt;img src="..." alt="..."&gt;</code> 就是 <code>struct img { char *src; char *alt; }</code>，只是它没有内容和结束标签。</p>
+
+            <h2>为什么别写一堆 div</h2>
+
+            <p>我最初那一版，所有东西都是 <code>&lt;div&gt;</code>：<code>&lt;div&gt;</code> 套 <code>&lt;div&gt;</code>，一层又一层，回头自己都看不出哪块是什么。</p>
+
+            <p>后来改成这样：</p>
+
+            <pre><code>&lt;header&gt;  &lt;!-- 页头：站名、介绍 --&gt;
+&lt;nav&gt;     &lt;!-- 导航：一组链接 --&gt;
+&lt;main&gt;    &lt;!-- 主体：一页只有一个 --&gt;
+&lt;article&gt; &lt;!-- 一篇文章 --&gt;
+&lt;footer&gt;  &lt;!-- 页脚：版权 --&gt;</code></pre>
+
+            <p><code>&lt;article&gt;</code> 装一篇文章，<code>&lt;header&gt;</code> 装页头，<strong>光看标签名就知道这块是什么</strong>。</p>
+
+            <p>有个反直觉的点：<strong>这些标签默认长得和 <code>&lt;div&gt;</code> 一模一样</strong>，不会自动变好看。它们的价值在别处——</p>
+
+            <blockquote>
+                <p>搜索引擎靠它理解你的页面结构，读屏软件靠它一键跳到正文。<br>
+                视觉是 CSS 的事，结构是 HTML 的事，别指望 HTML 让页面变美。</p>
+            </blockquote>
+
+            <h2>愣住的那一刻：页面变了，文件没变</h2>
+
+            <p>我在 F12 的“元素”面板里，双击 <code>&lt;h1&gt;</code> 里的文字，改成“我改过了”，回车——页面上立刻变了。</p>
+
+            <p>然后我按了 F5。</p>
+
+            <p><strong>变回去了。</strong></p>
+
+            <p>回 VS Code 打开 <code>index.html</code>，<strong>文件一个字都没变</strong>。</p>
+
+            <p>那一下我才明白，浏览器里那棵树和硬盘上那个文件，是两个东西。它们有正式的名字：</p>
+
+            <ul>
+                <li>硬盘上的文件：<strong>HTML 源码</strong></li>
+                <li>内存里的那棵树：<strong>DOM</strong>（Document Object Model）</li>
+            </ul>
+
+            <p>用我熟悉的东西对一遍：</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>文件</th>
+                        <th>DOM</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>磁盘上的文本</td>
+                        <td>内存里的对象树</td>
+                    </tr>
+                    <tr>
+                        <td>相当于 <code>.c</code> 源文件</td>
+                        <td>相当于加载到内存里的 AST</td>
+                    </tr>
+                    <tr>
+                        <td>编辑它</td>
+                        <td>相当于在调试器里改变量</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>在调试器里把 <code>int x = 5</code> 改成 100，程序跑的时候是 100，但 <code>.c</code> 文件里还是 5，重新编译又回到 5。<strong>DOM 和文件的关系一模一样。</strong></p>
+
+            <p>三条实际区别：</p>
+
+            <ol>
+                <li><strong>形态不同</strong>：文件是文本；DOM 里每个节点都是对象，有属性，能被程序读写</li>
+                <li><strong>内容可能不同</strong>：浏览器会补全、会规范化——标签写成大写会统一成小写，嵌套写错了会被自动纠正</li>
+                <li><strong>生命周期不同</strong>：文件持久存在，DOM 只在页面打开期间存在，刷新就重建</li>
+            </ol>
+
+            <p><strong>一句话：文件是“源码”，DOM 是“加载后的内存结构”。F12 是调试器，不是编辑器。</strong></p>
+
+            <h2>两个当天踩的坑</h2>
+
+            <p><strong>① 转义</strong></p>
+
+            <p>我在代码块里写 <code>#include &lt;stdio.h&gt;</code>，页面上什么都没有。因为 <code>&lt;stdio.h&gt;</code> 被浏览器当成了一个标签，直接吞掉了。</p>
+
+            <p>HTML 里有三个字符必须写成实体：<code>&lt;</code> → <code>&amp;lt;</code>、<code>&gt;</code> → <code>&amp;gt;</code>、<code>&amp;</code> → <code>&amp;amp;</code>。</p>
+
+            <p><strong>② <code>pre</code> 会保留所有空格</strong></p>
+
+            <p><code>&lt;pre&gt;</code> 保留换行和空格。好处是代码块能保持格式，坏处是<strong>你为了“HTML 好看”加的缩进，会原样出现在页面上</strong>。所以 <code>&lt;pre&gt;</code> 里的内容要顶格写，只在代码内部用缩进。</p>
+
+            <h2>结尾</h2>
+
+            <p>第一版页面丑得很彻底：巨大的黑字、蓝紫色的链接、一张撑满屏幕的图。</p>
+
+            <p>但它是有<strong>结构</strong>的。而且从那一刻起我明白了一件事：我写的从来不是“屏幕上那个东西”，我写的是一份<strong>会被浏览器解释的文本</strong>。</p>
+
+            <p>后面所有的调试，都发生在这两者之间。</p>
+        </article>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← 返回首页</a></p>
+    </footer>
+</body>
+</html>

@@ -339,6 +339,138 @@ header img {
 
 ---
 
+## 阶段 3 · Git + 上线 — ✅ 完成（2026-11-27）
+
+**产出**
+- 本地 Git 仓库：`D:\my-blog\.git`，3 个提交
+- 远程仓库：`https://github.com/ShigaDove/my-blog`
+- **线上地址：`https://shigadove.github.io/my-blog/`**（GitHub Pages，公开可访问）
+
+### 3.1 Git 不是 GitHub
+
+| | 是什么 | 在哪 |
+|---|---|---|
+| **Git** | 版本控制工具 | 装在本地，不需要网络 |
+| **GitHub** | 代码托管网站 | 云端，用来备份和分享 |
+
+GitHub 只是"把本地 Git 仓库放到网上"，不用 GitHub 也能用 Git。
+
+### 3.2 三个区
+
+```
+工作区              暂存区(.git/index)        本地仓库(.git/objects)
+正在编辑的文件  →   git add 的待提交清单  →   git commit 的快照
+```
+
+- **暂存区存在的原因**：让你能挑着提交（改了 3 个文件只提交 2 个）
+- 每个 commit = 「完整快照 + 作者 + 时间 + 说明 + **指向父节点的指针**」→ 历史是一条**链表**，分支只是**指向某个 commit 的指针**，`HEAD` 是"我现在在哪"
+
+### 3.3 命令表
+
+| 命令 | 作用 |
+|---|---|
+| `git status` | 最常用。看清现在在哪个阶段 |
+| `git add .` | 全部改动放进暂存区 |
+| `git commit -m "说明"` | 存成一个快照 |
+| `git log --oneline` | 一行一个提交 |
+| `git diff` | 工作区 vs 上次提交的差异 |
+| `git push` | 推到远程 |
+| `git restore 文件` | **用最后一次提交覆盖工作区**（救命） |
+
+**颜色约定**（`git status`）：红 = 工作区有改动、没进暂存区；绿 = 已进暂存区。
+
+### 3.4 撤销三连
+
+| 情况 | 命令 |
+|---|---|
+| 改错了，还没 add | `git restore 文件名` |
+| add 了但没 commit | `git restore --staged 文件名` |
+| 已 commit | `git revert`（以后讲） |
+
+### 3.5 踩坑：`fatal: not a git repository`
+
+原因：**不在仓库目录里执行**。`PS C:\Users\he'ro>` 里跑 `git commit`，那里没有 `.git`。
+
+- 教训：**敲命令前先看提示符的路径**
+- 解法：每次先 `cd D:\my-blog`；或直接用 **VS Code 内置终端**（`` Ctrl+` `` 打开的会自动定位到当前文件夹）
+
+### 3.6 踩坑：`Author identity unknown`
+
+原因：跳过了 `git config` 步骤。Git 甚至猜了个 `he'ro@WIN-LGPSETKEEPD.(none)` —— 因为 Windows 用户名里带**单引号**，猜出来的地址是废的。这是「路径/用户名不要有单引号」的又一次实证。
+
+修复：
+
+```powershell
+git config --global user.name "用户名"
+git config --global user.email "邮箱"
+git config --global init.defaultBranch main
+git config --global --list     # 验证
+```
+
+### 3.7 踩坑：`.gitignore` 打不开，说"二进制文件"
+
+原因：那个文件其实是个 **9KB 的 Office 文档**（建的时候误选了 Word/Excel 模板再改名）。证据是文件头：
+
+```
+D0 CF 11 E0 A1 B1 1A E1   ← OLE2 复合文档的魔数
+```
+
+**知识点：扩展名会撒谎，文件头（魔数）不会。**
+
+| 魔数 | 类型 |
+|---|---|
+| `89 50 4E 47` | PNG |
+| `FF D8 FF` | JPEG |
+| `50 4B 03 04` | ZIP（.docx/.xlsx 也是） |
+| `D0 CF 11 E0` | 老版 Office（.doc/.xls） |
+| `EF BB BF` | UTF-8 带 BOM |
+
+**建文本文件只在 VS Code 里建**；资源管理器右键要用「文本文档」，不要用 Office 模板。VS Code 右下角状态栏能看/改文件编码。
+
+### 3.8 远程仓库与 push
+
+```powershell
+git remote add origin https://github.com/ShigaDove/my-blog.git
+git remote -v        # 看有没有配错
+git push -u origin main
+```
+
+- `git remote add` **不校验地址是否存在**，只记一行字符串；真正报错的是 push
+- **第一次要 `-u`**：建立本地 `main` ↔ 远程 `origin/main` 的追踪关系，之后 `git push` 两个字就够
+- GitHub 上**必须先建好空仓库**（名字要和 URL 一致），且**不要勾** README / .gitignore / license，否则 push 会被 `fetch first` 拒绝
+- **密码认证已废**（2021-08 起）：用 GCM 浏览器登录，或 Personal Access Token（Settings → Developer settings → Tokens (classic) → 勾 `repo`）
+
+### 3.9 GitHub Pages 上线
+
+- 入口：仓库 **Settings → Pages**（新版藏在右上 **More ▾** 菜单里；也可以直达 `github.com/用户名/仓库/settings/pages`）
+- 配置：**Deploy from a branch** → `main` → `/ (root)` → Save
+- 地址：`https://用户名.github.io/仓库名/`，免费账号要求仓库 **Public**
+- **每次 push 到 main 都会自动重新发布**（最原始的一层 CI/CD）
+- 建议加一个空的 `.nojekyll` 文件：跳过 Jekyll 构建，否则以 `_` 开头的目录（如以后 Astro 的 `_astro/`）会被静默忽略
+
+**为什么部署在子路径 `/my-blog/` 下也能跑**：因为全站用的是**相对路径**（`style.css`、`posts/hello.html`、`../style.css`）。绝对路径 `/style.css` 会去找域名根目录然后 404。
+
+### 3.10 踩坑：push 了但网页没变
+
+GitHub Pages 前面有 **CDN 缓存**，改完可能要等几分钟。也有浏览器缓存的因素 → `Ctrl+F5` 强制刷新 / 无痕窗口 / 等一会。**"代码对了但页面没变"先怀疑缓存。**
+
+### 3.11 改 GitHub 用户名要改哪里
+
+| 要改 | 命令 |
+|---|---|
+| 远程地址（**必须**） | `git remote set-url origin https://github.com/新名字/仓库.git` |
+| 显示名（建议） | `git config --global user.name "新名字"` |
+| 页脚署名等硬编码文本 | 手动改 |
+
+**不用改**：邮箱（和用户名无关）、已提交的历史（GitHub 按 email 认人，旧 URL 会 302 重定向）、本地文件夹名。
+**会变**：`用户名.github.io` 这个 Pages 地址。
+
+### 3.12 本阶段还没搞懂的
+
+- （待补）
+
+---
+
 <!-- 新阶段模板，复制这一小段往下加
 
 ## 阶段 N · 标题 — ⬜ 进行中

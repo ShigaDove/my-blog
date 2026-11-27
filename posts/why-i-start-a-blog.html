@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我为什么决定从零做一个博客</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <header>
+        <h1>我为什么决定从零做一个博客</h1>
+        <time datetime="2026-11-25">2026年11月25日</time>
+    </header>
+
+    <main>
+        <article>
+            <p>我想做博客。脑子里冒出来的第一串词是：服务器、域名、数据库、后端，还有一堆我叫不出名字的东西。</p>
+
+            <p>于是我做的第一件事，是先花半天把这串词弄清楚。结果发现：<strong>我一个都不需要。</strong></p>
+
+            <h2>我原以为我要做的事</h2>
+
+            <p>我以为博客是这样的：每篇文章都躺在某个数据库里，有人访问，服务器就跑一遍代码、查一次数据库、临时把网页拼出来。</p>
+
+            <p>这叫<strong>动态网站</strong>，WordPress 就是。要维护服务器、要防注入、要备份数据库——一个只想写字的人，不该背这些。</p>
+
+            <p>而我实际需要的，是另一种东西：<strong>静态网站</strong>。</p>
+
+            <h2>用一把 C 的尺子，把这件事量清楚</h2>
+
+            <p>这个区别，用写 C 的方式说最省事：</p>
+
+            <ul>
+                <li><strong>动态网站 = 运行期计算</strong>。每个访客来一次，就执行一遍“查文章、拼网页”的函数。</li>
+                <li><strong>静态网站 = 编译期计算</strong>。在“构建”的时候，把所有页面一次性生成成 <code>.html</code> 文件；之后服务器只是把文件原样发出去，<strong>一行代码都不执行</strong>。</li>
+            </ul>
+
+            <p>后来我把构建流程和 <code>gcc</code> 并排放，才发现这俩根本是一回事：</p>
+
+            <pre><code>.c 源文件   →  gcc   →  .exe
+.md 文章    →  构建   →  dist/*.html</code></pre>
+
+            <p><strong>构建 = 编译。</strong> 这个类比一建立，后面所有概念都顺了。</p>
+
+            <p>等我写到 50 篇，构建一次就是 50 个 html，访客来了只是下载文件。</p>
+
+            <p>代价也得说清楚：<strong>内容改了要重新构建一次</strong>；而且它做不了“用户提交数据”的功能。</p>
+
+            <h2>输入网址之后，那 8 步</h2>
+
+            <p>想通“我只需要一个静态文件夹”之后，我才敢往下走。顺手把这条链路也搞清楚了，因为它解释了后面所有的“为什么”：</p>
+
+            <ol>
+                <li>查缓存（浏览器缓存 → 系统 hosts 文件）</li>
+                <li><strong>DNS 解析</strong>：域名翻译成 IP</li>
+                <li>建立连接：TCP 握手；https 再加一次 TLS</li>
+                <li>发 HTTP 请求：方法 + 路径 + 请求头</li>
+                <li>服务器响应：状态码 + 头 + body</li>
+                <li>浏览器把 HTML 解析成 <strong>DOM 树</strong></li>
+                <li>渲染：CSS 规则 + DOM → 算布局 → 画像素</li>
+                <li>屏幕上出现画面</li>
+            </ol>
+
+            <blockquote>
+                <p>这里面我一开始唯一会混的，是 IP、端口、域名这三个。<br>
+                记法是：<strong>IP 找到哪台机器，端口找到机器上哪个程序，域名是给人记的名字。</strong></p>
+            </blockquote>
+
+            <h2>一个意外收获：PATH 到底是什么</h2>
+
+            <p>装环境时敲 <code>node -v</code> 能用，但 <code>mkdri</code> 报“无法识别”。我当时以为是 Node 装坏了。</p>
+
+            <p>后来一条命令把我打醒：</p>
+
+            <pre><code>Get-Command node
+
+# CommandType   Name      Version    Source
+# -----------   ----      -------    ------
+# Application   node.exe  24.21.0    D:\node.exe</code></pre>
+
+            <p>它告诉我：系统是在 <strong><code>D:\</code> 这个目录</strong>里找到 <code>node.exe</code> 的。</p>
+
+            <p>原来 <strong>PATH 就是一串目录</strong>。你敲任何命令，系统按顺序进去翻，找到第一个就用；翻遍了没有，那句“无法识别”就出来了。</p>
+
+            <p>这跟 C 的 include 路径是同一件事：<code>#include "foo.h"</code> 时编译器按 <code>-I</code> 列表一个个找，找不到就 <code>No such file or directory</code>。</p>
+
+            <p>看出这个之后，“装了但命令找不到”再也不是玄学——<strong>只是那个目录没被写进 PATH</strong>。</p>
+
+            <h2>所以我要做的东西，本质是什么</h2>
+
+            <p><strong>一个精心排版的文件夹。</strong></p>
+
+            <p>一个 HTML 骨架、一份 CSS、几篇 Markdown。构建一下，变成一堆静态文件，丢到免费托管上。</p>
+
+            <p>不需要后端，不需要数据库，不会被注来注去，一年成本可以是 0。</p>
+
+            <p>剩下的事只有一件：<strong>让它看起来像个人做的，而不是像 2003 年的网页。</strong></p>
+
+            <p>（这也是我接下来要花时间的地方。而它已经开始有效果了。）</p>
+        </article>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← 返回首页</a></p>
+    </footer>
+</body>
+</html>

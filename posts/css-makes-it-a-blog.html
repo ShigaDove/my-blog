@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>给页面加 CSS 那天，我学会了一件事：CSS 出错不会告诉你</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <header>
+        <h1>给页面加 CSS 那天，我学会了一件事：CSS 出错不会告诉你</h1>
+        <time datetime="2026-11-27">2026 年 11 月 27 日</time>
+    </header>
+
+    <main>
+        <article>
+            <p>第一版页面最扎眼的是一张图——它撑满整个屏幕，把页头压成了一条缝。</p>
+
+            <p>第二扎眼的是字：标题大得像横幅，正文贴着屏幕边缘，链接是九十年代网页那种蓝紫色。</p>
+
+            <p>加上 CSS 三分钟之后，它就勉强能看了。但过程不太顺。</p>
+
+            <h2>CSS 要放对地方</h2>
+
+            <p>三种写法，我直接用第三种：</p>
+
+            <pre><code>&lt;!-- 行内 --&gt;
+&lt;h1 style="color: red"&gt;标题&lt;/h1&gt;
+
+&lt;!-- 内部 --&gt;
+&lt;style&gt; h1 { color: red; } &lt;/style&gt;
+
+&lt;!-- 外部（推荐） --&gt;
+&lt;link rel="stylesheet" href="style.css"&gt;</code></pre>
+
+            <p>理由很简单：<strong>一处改，全站变</strong>。等你有五十篇文章，不可能每篇都去改一次颜色。</p>
+
+            <p>有个细节绊了我一下：<code>index.html</code> 里写 <code>href="style.css"</code> 就行，但 <code>posts/hello.html</code> 里必须写 <code>href="../style.css"</code>——它在子目录里，得先退一层才找得到。</p>
+
+            <p><strong>相对路径是相对于“当前这个文件在哪”，不是相对于项目根目录。</strong></p>
+
+            <h2>盒模型：一个元素就是四个数字</h2>
+
+            <p>页面上每个元素都是一个矩形盒子：</p>
+
+            <pre><code>┌──── margin（外边距，透明，把别人推开）────┐
+│  ┌── border（边框，看得见的线）──┐        │
+│  │  ┌─ padding（内边距，背景色铺满）─┐    │
+│  │  │       content（内容）        │    │
+│  │  └──────────────────────────────┘    │
+│  └──────────────────────────────────────┘
+└──────────────────────────────────────────┘</code></pre>
+
+            <p>对我来说它就是 <code>struct box { int content, padding, border, margin; }</code>。</p>
+
+            <p>关键是把 <strong>padding 和 margin 分清</strong>：</p>
+
+            <ul>
+                <li><code>padding</code>：盒子<strong>内部</strong>的空隙，背景色会把它填满</li>
+                <li><code>margin</code>：盒子<strong>外部</strong>的空地，永远是透明的</li>
+            </ul>
+
+            <p>还有个反直觉的默认行为：<strong><code>width</code> 只算 content</strong>。写 <code>width: 300px; padding: 20px</code>，实际占 340px——盒子被撑大了。</p>
+
+            <p>所以每个项目的第一条 CSS 都是这句：</p>
+
+            <pre><code>*, *::before, *::after {
+  box-sizing: border-box;
+}</code></pre>
+
+            <p>意思是“<code>width</code> 从今往后包含 padding 和 border”。<code>*</code> 是通配符，选中所有元素。</p>
+
+            <h2>一个字母，整条规则消失</h2>
+
+            <p>我拼错过这一行：</p>
+
+            <pre><code>*, *::bedore, *::after {   /* before 打成了 bedore */
+  box-sizing: border-box;
+}</code></pre>
+
+            <p>页面看起来完全正常。</p>
+
+            <p>直到我在 F12 的样式面板里翻了一遍，才发现：<strong><code>box-sizing</code> 一条都没生效。</strong></p>
+
+            <p>原因是 CSS 的一条规矩：逗号分隔的选择器列表里，<strong>只要有一个无效，整条规则全部作废</strong>——不是跳过那一个，是整条丢掉。</p>
+
+            <p>它当时没造成后果，纯属侥幸（我还没给任何元素写死宽度）。但这件事让我记住了一句话：</p>
+
+            <blockquote>
+                <p><strong>CSS 出错不会报错，它只是静默地不生效。</strong></p>
+            </blockquote>
+
+            <p>这是从 C 转过来最不适应的一点。编译器会指着行号骂你，CSS 只会假装什么都没发生。</p>
+
+            <p>排查方法，从那天起我一直在用：</p>
+
+            <ol>
+                <li>按 <code>F12</code>，选中那个元素</li>
+                <li>右侧“样式”面板看规则<strong>在不在</strong></li>
+                <li>被划掉的 = 被更高优先级的规则覆盖了</li>
+                <li>压根看不到的 = 语法错误，整条被丢弃</li>
+            </ol>
+
+            <h2>让三个链接排成一行：Flexbox</h2>
+
+            <p>导航的三个链接本来挤在一起，间距由源码里的换行产生，完全没法精确控制。</p>
+
+            <pre><code>nav {
+  display: flex;
+  gap: 20px;
+}</code></pre>
+
+            <p>两行解决。Flexbox 的模型是：<strong>给容器加上 <code>display: flex</code>，它的直接子元素就变成沿主轴排列的格子。</strong></p>
+
+            <p>两个轴记住就够了：主轴是排列方向（默认水平），交叉轴是垂直方向。<code>justify-content</code> 管主轴，<code>align-items</code> 管交叉轴。</p>
+
+            <p><code>gap</code> 和 <code>margin</code> 的区别值得单独说，因为它俩经常被混：</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>属性</th>
+                        <th>属于谁</th>
+                        <th>效果</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>margin</code></td>
+                        <td>元素自己</td>
+                        <td>它和<strong>所有</strong>邻居之间的距离，最外侧也会留空</td>
+                    </tr>
+                    <tr>
+                        <td><code>gap</code></td>
+                        <td>容器</td>
+                        <td>只在<strong>子元素之间</strong>留空，最外侧不额外加</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>用 <code>margin-right: 20px</code> 给三个链接加间距，最后一个右边也会空出 20px——因为它不知道自己是不是最后一个。<code>gap</code> 没有这个问题。</p>
+
+            <p>而且 <strong><code>gap</code> 只在 flex / grid 容器里有效</strong>，普通容器上写了等于没写。</p>
+
+            <h2>响应式：同一个页面，两个尺寸</h2>
+
+            <pre><code>@media (max-width: 600px) {
+  body    { font-size: 15px; }
+  h1      { font-size: 1.6rem; }
+  article { padding: 16px 18px; }
+}</code></pre>
+
+            <p>读作“<strong>视口宽度不超过 600px 时，这些规则才生效</strong>”。</p>
+
+            <p>这条能成立的前提，是阶段一那个毫不起眼的 <code>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</code>。没有它，手机浏览器会假装自己有 980px 宽，媒体查询永远不触发。</p>
+
+            <p>验收响应式别用手拖窗口。按 <code>F12</code> 再按 <code>Ctrl+Shift+M</code> 开设备模拟——<strong>这是职业前端每天在用的东西</strong>。</p>
+
+            <h2>结果</h2>
+
+            <p>灰白背景，居中一栏，三张白色圆角卡片，鼠标悬停时有淡淡的阴影。</p>
+
+            <p>离“设计感”还差得远，但它终于<strong>像一个站点了</strong>。</p>
+
+            <p>回头看，CSS 真正的门槛不是属性多，而是那个<strong>反馈回路</strong>：你写错了，它不说话；你必须自己知道去哪儿看。学会看 F12 的样式面板，比背下二十个属性有用得多。</p>
+        </article>
+    </main>
+
+    <footer>
+        <p><a href="../index.html">← 返回首页</a></p>
+    </footer>
+</body>
+</html>
